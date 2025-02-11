@@ -1,5 +1,5 @@
-matplotlib
-pandas
-openpyxl
 streamlit
-pip install streamlit pandas matplotlib openpyxl requests
+pandas
+matplotlib
+openpyxl
+requests
