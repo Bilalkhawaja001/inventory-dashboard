@@ -16,6 +16,13 @@ try:
     response.raise_for_status()
     file_bytes = BytesIO(response.content)
     df = pd.read_excel(file_bytes, sheet_name=sheet_name)
+
+    # Debugging: Check raw data and types
+    st.write("## Raw Data (Before Date Handling):")
+    st.dataframe(df)
+    st.write("## Data Types (Before Date Handling):")
+    st.write(df.dtypes)
+
 except Exception as e:
     st.error(f"❌ Error reading Excel file: {e}")
     st.stop()
@@ -56,6 +63,15 @@ st.sidebar.header("🔍 **Filters**")
 # Date Filter (handle potential errors and NaT)
 try:
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')  # Convert to datetime, handle errors
+
+    # Debugging: Check data after conversion and NaT count
+    st.write("## Data After Conversion:")
+    st.dataframe(df)
+    st.write("## Data Types After Conversion:")
+    st.write(df.dtypes)
+    st.write("## Number of NaT Values:")
+    st.write(df['Date'].isnull().sum())
+
     # Check for NaT *after* conversion
     if df['Date'].isnull().all():  # Check if *all* dates are NaT
         st.warning("⚠️ No valid dates available for filtering. Please check the 'Date' column in your Excel file.")
@@ -66,8 +82,8 @@ try:
         max_date = df['Date'].max()
         date_filter = st.sidebar.date_input("Select Date", value=min_date)  # Initialize with min_date
 
-except (TypeError, ValueError):
-    st.warning("⚠️ Could not convert 'Date' column to datetime. Please check the 'Date' column in your Excel file for formatting issues.")  # More specific message
+except (TypeError, ValueError) as e:
+    st.warning(f"⚠️ Could not convert 'Date' column to datetime. Please check the 'Date' column in your Excel file for formatting issues. Error: {e}")  # More specific message
     date_filter = None
 
 # ... (rest of the filter code: item_filter, category_filter, etc.)
