@@ -55,12 +55,12 @@ st.sidebar.header("🔍 **Filters**")
 
 # Date Filter (handle potential errors and NaT)
 try:
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce') # Convert to datetime, handle errors
-    df.dropna(subset=['Date'], inplace=True) # Remove rows with NaT dates
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')  # Convert to datetime, handle errors
+    df.dropna(subset=['Date'], inplace=True)  # Remove rows with NaT dates
     if not df['Date'].empty:
         min_date = df['Date'].min()
         max_date = df['Date'].max()
-        date_filter = st.sidebar.date_input("Select Date", value=min_date) # Initialize with min_date
+        date_filter = st.sidebar.date_input("Select Date", value=min_date)  # Initialize with min_date
     else:
         st.warning("⚠️ No valid dates available for filtering.")
         date_filter = None
@@ -85,7 +85,7 @@ vendor_filter = st.sidebar.multiselect("Select Vendor", vendor_options)
 filtered_df = df.copy()
 
 if date_filter:
-    filtered_df = filtered_df[filtered_df['Date'] == date_filter] # Exact date match
+    filtered_df = filtered_df[filtered_df['Date'] == date_filter]  # Exact date match
 
 if item_filter:
     filtered_df = filtered_df[filtered_df["Item Description"].str.contains(item_filter, case=False, na=False)]
@@ -104,7 +104,7 @@ if vendor_filter:
 
 
 # 📋 Data Table
-st.subheader("📋 Inventory Data")
+st.subheader("<h3><b>Inventory Management System</b></h3>") # Title Added and formatted
 st.dataframe(filtered_df)
 
 st.write("🔄 **Use Filters to Update Data!**")
