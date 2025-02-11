@@ -6,7 +6,7 @@ import base64
 
 # ✅ Correct File Paths
 logo_path = "C:/Bilal/LOGO.PNG"  # Ensure this file exists
-file_path = "Fixed_Inventory_Management.xlsx"  # Corrected file path
+file_path = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Fixed_Inventory_Management.xlsx"
 sheet_name = "Inventory"
 
 # 🔥 Load Excel File
