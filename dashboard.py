@@ -1,26 +1,34 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import os
+import requests
+from io import BytesIO
+from PIL import Image
 import base64
-import requests  # ✅ For fetching files from GitHub
-from io import BytesIO  # ✅ To handle the Excel file in memory
 
 # ✅ Correct File Paths
-logo_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/LOGO.PNG"
-file_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Fixed_Inventory_Management.xlsx"
+excel_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Fixed_Inventory_Management.xlsx"
+logo_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Logo.jpeg"
 sheet_name = "Inventory"
+
+# 🔥 Load Logo from GitHub
+try:
+    response = requests.get(logo_url)
+    response.raise_for_status()
+    image = Image.open(BytesIO(response.content))
+    st.image(image, caption="Centralized Mess", use_column_width=True)
+except Exception as e:
+    st.warning(f"⚠️ Logo file not found. Please check the path. Error: {e}")
 
 # 🔥 Load Excel File from GitHub
 try:
-    response = requests.get(file_url)
-    response.raise_for_status()  # ✅ Raise error if file not found
-    file_bytes = BytesIO(response.content)  # ✅ Store file in memory
-    df = pd.read_excel(file_bytes, sheet_name=sheet_name)  # ✅ Read Excel data
-
+    response = requests.get(excel_url)
+    response.raise_for_status()
+    file_bytes = BytesIO(response.content)
+    df = pd.read_excel(file_bytes, sheet_name=sheet_name)
 except Exception as e:
     st.error(f"❌ Error reading Excel file: {e}")
-    st.stop()  # ✅ Stop execution if file not found
+    st.stop()
 
 # ✅ Ensure Required Columns Exist & Fill NaN Values
 required_columns = ["Date", "Item Description", "Category", "Quantity", "UOM", "Price", "Vendor"]
@@ -33,60 +41,19 @@ df.fillna({"Quantity": 0, "Price": 0, "Category": "Unknown", "Vendor": "Unknown"
 df["Quantity"] = df["Quantity"].fillna(0).astype(int)
 df["Price"] = df["Price"].fillna(0).astype(int)
 
-# ✅ Load Logo from GitHub & Convert to Base64
-try:
-    response = requests.get(logo_url)
-    response.raise_for_status()
-    logo_base64 = base64.b64encode(response.content).decode()
-except Exception as e:
-    st.warning(f"⚠️ Logo file not found. Please check the path. Error: {e}")
-    logo_base64 = ""
+# ✅ FIX PRICE & QUANTITY RANGE
+quantity_min, quantity_max = 0, 1000  # 🔥 Fixed max Quantity to 1000
+price_min, price_max = 1000, 100000  # 🔥 Fixed Price Range to 1000 - 100000
 
-# 🎨 Apply CSS for Perfect Alignment
+# 🎨 Apply CSS for UI Styling
 st.markdown(
-    f"""
+    """
     <style>
-    .header-container {{
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        position: relative;
-        top: 10px;
-        left: 10px;
-        background: white;
-        padding: 10px 15px;
-        border-radius: 5px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        width: auto;
-        max-width: 400px;
-    }}
-    .header-container img {{
-        width: 48px;
-        height: 48px;
-        display: inline-block;
-    }}
-    .header-container div {{
-        margin-left: 10px;
-        display: inline-block;
-    }}
-    .header-container h1 {{
-        font-size: 24px;
-        margin: 0;
-        font-weight: bold;
-        color: black;
-    }}
-    .header-container h3 {{
-        font-size: 14px;
-        margin: 0;
-        font-weight: normal;
-        color: black;
-    }}
-    .inventory-box {{
+    .inventory-box {
         text-align: center;
         font-size: 50px;
         font-weight: bold;
-        margin-top: 80px;
+        margin-top: 20px;
         padding: 20px;
         border-radius: 10px;
         background: linear-gradient(to right, #4A90E2, #50E3C2);
@@ -96,22 +63,14 @@ st.markdown(
         justify-content: center;
         align-items: center;
         width: 100%;
-    }}
+    }
     </style>
-    <div class="header-container">
-        <img src="data:image/png;base64,{logo_base64}">
-        <div>
-            <h1>Centralized Mess</h1>
-            <h3>Liberty Eco Campus Nooriabad</h3>
-        </div>
-    </div>
+    <div class="inventory-box">INVENTORY MANAGEMENT</div>
     """,
     unsafe_allow_html=True
 )
 
-# 🎯 Add Large Centered `Inventory Management` Inside Beautiful Box
-st.markdown("<div class='inventory-box'>INVENTORY MANAGEMENT</div>", unsafe_allow_html=True)
-
+# 🎯 Sidebar Filters
 st.sidebar.header("🔍 **Filters**")
 date_filter = st.sidebar.date_input("Select Date")
 item_filter = st.sidebar.text_input("Search Item Description")
@@ -121,9 +80,9 @@ uom_options = df["UOM"].dropna().unique().tolist()
 vendor_options = df["Vendor"].dropna().unique().tolist()
 
 category_filter = st.sidebar.multiselect("Select Category", category_options)
-quantity_filter = st.sidebar.slider("Select Quantity Range", min_value=0, max_value=1000, value=(0, 1000))
+quantity_filter = st.sidebar.slider("Select Quantity Range", min_value=quantity_min, max_value=quantity_max, value=(quantity_min, quantity_max))
 uom_filter = st.sidebar.multiselect("Select UOM", uom_options)
-price_filter = st.sidebar.slider("Select Price Range", min_value=1000, max_value=100000, value=(1000, 100000))
+price_filter = st.sidebar.slider("Select Price Range", min_value=price_min, max_value=price_max, value=(price_min, price_max))
 vendor_filter = st.sidebar.multiselect("Select Vendor", vendor_options)
 
 # 📋 Data Table
