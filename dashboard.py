@@ -16,7 +16,8 @@ try:
 
     # Convert to datetime, with VERY detailed error handling
     try:
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce', infer_datetime_format=True)  # infer_datetime_format
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce', infer_datetime_format=True)
+
         st.write("## 3. Data After Conversion:")
         st.dataframe(df)
         st.write("## 4. Data Types After Conversion:")
@@ -40,13 +41,15 @@ try:
             date_filter = st.sidebar.date_input("Select Date", value=min_date)
 
     except Exception as e:
-        st.error(f"## 7. Error during date conversion: {e}")  # Catch ANY conversion error
-        st.write("## 8. Sample of 'Date' column (for debugging):")  # Show a sample
-        st.dataframe(df['Date'].head(10))  # Show first 10 values
-        date_filter = None
+        st.error(f"## 7. Error during date conversion: {e}")
+        st.write("## 8. Sample of 'Date' column (for debugging):")
+        st.dataframe(df['Date'].head(10))
+        date_filter = None  # Set date_filter to None in case of error
 
 except Exception as e:
-    # ... (your file reading error handling)
+    st.error(f"❌ Error reading Excel file: {e}")  # Handle file reading errors
+    st.stop()  # Stop execution if file reading fails
+
 
 # ... (rest of your code, but ONLY the date filter for now)
 
