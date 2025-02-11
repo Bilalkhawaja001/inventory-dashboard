@@ -11,7 +11,22 @@ sheet_name = "Inventory"
 
 # 🔥 Load Excel File
 try:
-    df = pd.read_excel(file_path, sheet_name=sheet_name)
+   import requests  # ✅ HTTP request karne ke liye
+from io import BytesIO  # ✅ Excel ko memory mein load karne ke liye
+
+file_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Fixed_Inventory_Management.xlsx"
+
+try:
+    response = requests.get(file_url)
+    response.raise_for_status()  # ✅ Agar koi error ho toh raise karega
+    file_bytes = BytesIO(response.content)  # ✅ File ko memory mein store karna
+
+    df = pd.read_excel(file_bytes, sheet_name="Inventory")  # ✅ Pandas se read karna
+
+except Exception as e:
+    st.error(f"❌ Error reading Excel file: {e}")
+    st.stop()  # ✅ Agar file load na ho toh app stop karo
+
 except Exception as e:
     st.error(f"❌ Error reading Excel file: {e}")
     st.stop()
