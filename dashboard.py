@@ -12,14 +12,21 @@ logo_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboar
 sheet_name = "Inventory"
 
 # 🔥 Load Logo from GitHub
-try:
-    response = requests.get(logo_url)
-    response.raise_for_status()
-    image = Image.open(BytesIO(response.content))
-   st.image(image, caption="Centralized Mess", use_container_width=True)
-except Exception as e:
-    st.warning(f"⚠️ Logo file not found. Please check the path. Error: {e}")
+# ✅ Load the Logo
+logo_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Logo.jpeg"
 
+# ✅ Display the logo with text
+st.markdown(
+    f"""
+    <div style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 20px;">
+        <img src="{logo_url}" width="48" height="48" style="margin-right: 10px;">
+        <div>
+            <h2 style="margin: 0; font-size: 20px; color: #333;">Centralized Mess</h2>
+            <h4 style="margin: 0; font-size: 14px; color: #666;">Liberty Eco Campus Nooriabad</h4>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
 # 🔥 Load Excel File from GitHub
 try:
     response = requests.get(excel_url)
