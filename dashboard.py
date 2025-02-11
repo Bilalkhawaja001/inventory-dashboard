@@ -16,7 +16,7 @@ try:
     response = requests.get(logo_url)
     response.raise_for_status()
     image = Image.open(BytesIO(response.content))
-    st.image(image, caption="Centralized Mess", use_column_width=True)
+    st.image(image, caption="Centralized Mess", use_container_width=True)
 except Exception as e:
     st.warning(f"⚠️ Logo file not found. Please check the path. Error: {e}")
 
