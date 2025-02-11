@@ -8,7 +8,7 @@ from io import BytesIO
 
 # ✅ Correct File Paths
 logo_path = "C:/Bilal/LOGO.PNG"  
-file_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Fixed_Inventory_Management.xlsx"  
+file_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Fixed_Inventory_Management.xlsx"  # 👈 Apni file ka sahi link yahan daalo!
 
 # 🔥 Load Excel File from GitHub
 try:
@@ -16,10 +16,10 @@ try:
     response.raise_for_status()  
     file_bytes = BytesIO(response.content)  
 
-    df = pd.read_excel(file_bytes, sheet_name="Inventory")  
+    df = pd.read_excel(file_bytes, sheet_name="Inventory")  # 👈 Sheet ka naam confirm karo!
 
 except Exception as e:
     st.error(f"❌ Error reading Excel file: {e}")
     st.stop()  
 
-st.dataframe(df)  # ✅ Display DataFrame for testing
+st.dataframe(df)  # ✅ Check karo data aa raha hai ya nahi
