@@ -4,9 +4,42 @@ import requests
 from io import BytesIO
 from PIL import Image
 
-# ... (rest of your imports and file paths)
+# ✅ Correct File Paths
+excel_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Fixed_Inventory_Management.xlsx"
+logo_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Logo.jpeg"
+sheet_name = "Inventory"
 
 try:
+    response = requests.get(logo_url)
+    response.raise_for_status()  # Check for successful response
+    image = Image.open(BytesIO(response.content))
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 20px;">
+            <img src="{logo_url}" width="48" height="48" style="margin-right: 10px;">
+            <div>
+                <h2 style="margin: 0; font-size: 20px; color: #333;">Centralized Mess</h2>
+                <h4 style="margin: 0; font-size: 14px; color: #666;">Liberty Eco Campus Nooriabad</h4>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+except requests.exceptions.RequestException as e:
+    st.error(f"❌ Error downloading logo: {e}")
+    st.stop()
+except Exception as e:
+    st.error(f"❌ Error opening logo: {e}")
+    st.stop()
+
+
+
+try:
+    response = requests.get(excel_url)
+    response.raise_for_status()  # Check for successful response
+    file_bytes = BytesIO(response.content)  # Define file_bytes HERE
+
     df = pd.read_excel(file_bytes, sheet_name=sheet_name)
 
     st.write("## 1. Raw Data (Immediately After Loading):")
@@ -46,14 +79,24 @@ try:
         st.dataframe(df['Date'].head(10))
         date_filter = None  # Set date_filter to None in case of error
 
-except Exception as e:
-    st.error(f"❌ Error reading Excel file: {e}")  # Handle file reading errors
-    st.stop()  # Stop execution if file reading fails
+except requests.exceptions.RequestException as e:  # Handle URL errors
+    st.error(f"❌ Error downloading Excel file: {e}")
+    st.stop()
+except Exception as e:  # Handle other Excel reading errors
+    st.error(f"❌ Error reading Excel file: {e}")
+    st.stop()
 
 
-# ... (rest of your code, but ONLY the date filter for now)
+# 🎯 Sidebar Filters
+st.sidebar.header("🔍 **Filters**")
+# ... (rest of your sidebar filter code: item_filter, category_filter, etc.)
+
+# Apply Filters (Handle date_filter being None)
+filtered_df = df.copy()
 
 if date_filter:  # Only the date filter is active
-    filtered_df = df[df['Date'] == date_filter]
+    filtered_df = filtered_df[filtered_df['Date'] == date_filter]
 
-st.dataframe(filtered_df)  # Show only the filtered data
+# ... (Apply other filters similarly)
+
+st.dataframe(filtered_df)  # Show the filtered data
