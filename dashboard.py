@@ -9,94 +9,113 @@ excel_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboa
 logo_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Logo.jpeg"
 sheet_name = "Inventory"
 
-try:
-    response = requests.get(logo_url)
-    response.raise_for_status()  # Check for successful response
-    image = Image.open(BytesIO(response.content))
-    st.markdown(
-        f"""
-        <div style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 20px;">
-            <img src="{logo_url}" width="48" height="48" style="margin-right: 10px;">
-            <div>
-                <h2 style="margin: 0; font-size: 20px; color: #333;">Centralized Mess</h2>
-                <h4 style="margin: 0; font-size: 14px; color: #666;">Liberty Eco Campus Nooriabad</h4>
-            </div>
+# 🔥 Custom Header with Logo and Text
+st.markdown(
+    f"""
+    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+        <img src="{logo_url}" width="48" height="48" style="margin-right: 15px;">
+        <div>
+            <h2 style="margin: 0; font-size: 20px; color: #333;">Centralized Mess</h2>
+            <h4 style="margin: 0; font-size: 14px; color: #666;">Liberty Eco Campus Nooriabad</h4>
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-except requests.exceptions.RequestException as e:
-    st.error(f"❌ Error downloading logo: {e}")
-    st.stop()
-except Exception as e:
-    st.error(f"❌ Error opening logo: {e}")
-    st.stop()
-
-
-
+# 🔥 Load Excel File from GitHub
 try:
     response = requests.get(excel_url)
-    response.raise_for_status()  # Check for successful response
-    file_bytes = BytesIO(response.content)  # Define file_bytes HERE
-
+    response.raise_for_status()
+    file_bytes = BytesIO(response.content)
     df = pd.read_excel(file_bytes, sheet_name=sheet_name)
-
-    st.write("## 1. Raw Data (Immediately After Loading):")
-    st.dataframe(df)
-    st.write("## 2. Raw Data Types (Immediately After Loading):")
-    st.write(df.dtypes)
-
-    # Convert to datetime, with VERY detailed error handling
-    try:
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce', infer_datetime_format=True)
-
-        st.write("## 3. Data After Conversion:")
-        st.dataframe(df)
-        st.write("## 4. Data Types After Conversion:")
-        st.write(df.dtypes)
-        st.write("## 5. Number of NaT Values:")
-        st.write(df['Date'].isnull().sum())
-
-        # Show rows with NaT values (if any)
-        if df['Date'].isnull().any():
-            st.write("## 6. Rows with Invalid Dates (NaT):")
-            st.dataframe(df[df['Date'].isnull()])
-
-        # Check if ALL dates are NaT
-        if df['Date'].isnull().all():
-            st.warning("⚠️ ALL dates are invalid. Please check the 'Date' column in your Excel file.")
-            date_filter = None
-        else:
-            df.dropna(subset=['Date'], inplace=True)  # Remove NaT rows AFTER inspection
-            min_date = df['Date'].min()
-            max_date = df['Date'].max()
-            date_filter = st.sidebar.date_input("Select Date", value=min_date)
-
-    except Exception as e:
-        st.error(f"## 7. Error during date conversion: {e}")
-        st.write("## 8. Sample of 'Date' column (for debugging):")
-        st.dataframe(df['Date'].head(10))
-        date_filter = None  # Set date_filter to None in case of error
-
-except requests.exceptions.RequestException as e:  # Handle URL errors
-    st.error(f"❌ Error downloading Excel file: {e}")
-    st.stop()
-except Exception as e:  # Handle other Excel reading errors
+except Exception as e:
     st.error(f"❌ Error reading Excel file: {e}")
     st.stop()
 
+# ✅ Data Cleaning
+required_columns = ["Date", "Item Description", "Category", "Quantity", "UOM", "Price", "Vendor"]
+for col in required_columns:
+    if col not in df.columns:
+        st.error(f"❌ Missing required column: {col}")
+        st.stop()
 
-# 🎯 Sidebar Filters
-st.sidebar.header("🔍 **Filters**")
-# ... (rest of your sidebar filter code: item_filter, category_filter, etc.)
+df.fillna({
+    "Quantity": 0, 
+    "Price": 0, 
+    "Category": "Unknown", 
+    "Vendor": "Unknown", 
+    "UOM": "N/A"
+}, inplace=True)
 
-# Apply Filters (Handle date_filter being None)
+# 🎯 Enhanced Sidebar Filters
+st.sidebar.header("🔍 **Advanced Filters**")
+
+# Category Filter
+category_options = ["All"] + sorted(df["Category"].unique().tolist())
+selected_category = st.sidebar.selectbox(
+    "Select Category", 
+    category_options,
+    index=0
+)
+
+# UOM Filter
+uom_options = ["All"] + sorted(df["UOM"].unique().tolist())
+selected_uom = st.sidebar.selectbox(
+    "Select Unit of Measure", 
+    uom_options,
+    index=0
+)
+
+# Vendor Filter
+vendor_options = ["All"] + sorted(df["Vendor"].unique().tolist())
+selected_vendor = st.sidebar.selectbox(
+    "Select Vendor", 
+    vendor_options,
+    index=0
+)
+
+# Quantity and Price Filters
+quantity_range = st.sidebar.slider(
+    "Select Quantity Range",
+    min_value=int(df["Quantity"].min()),
+    max_value=int(df["Quantity"].max()),
+    value=(int(df["Quantity"].min()), int(df["Quantity"].max()))
+)
+
+price_range = st.sidebar.slider(
+    "Select Price Range",
+    min_value=int(df["Price"].min()),
+    max_value=int(df["Price"].max()),
+    value=(int(df["Price"].min()), int(df["Price"].max()))
+)
+
+# 🔄 Apply Filters
 filtered_df = df.copy()
 
-if date_filter:  # Only the date filter is active
-    filtered_df = filtered_df[filtered_df['Date'] == date_filter]
+if selected_category != "All":
+    filtered_df = filtered_df[filtered_df["Category"] == selected_category]
 
-# ... (Apply other filters similarly)
+if selected_uom != "All":
+    filtered_df = filtered_df[filtered_df["UOM"] == selected_uom]
 
-st.dataframe(filtered_df)  # Show the filtered data
+if selected_vendor != "All":
+    filtered_df = filtered_df[filtered_df["Vendor"] == selected_vendor]
+
+filtered_df = filtered_df[
+    (filtered_df["Quantity"] >= quantity_range[0]) & 
+    (filtered_df["Quantity"] <= quantity_range[1]) &
+    (filtered_df["Price"] >= price_range[0]) & 
+    (filtered_df["Price"] <= price_range[1])
+]
+
+# 📋 Display Filtered Data
+st.subheader("📊 Filtered Inventory Data")
+st.dataframe(
+    filtered_df,
+    use_container_width=True,
+    height=600,
+    hide_index=True
+)
+
+st.success(f"✅ Showing {len(filtered_df)} matching records")
