@@ -56,55 +56,32 @@ st.sidebar.header("🔍 **Filters**")
 # Date Filter (handle potential errors and NaT)
 try:
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')  # Convert to datetime, handle errors
-    df.dropna(subset=['Date'], inplace=True)  # Remove rows with NaT dates
-    if not df['Date'].empty:
+    # Check for NaT *after* conversion
+    if df['Date'].isnull().all():  # Check if *all* dates are NaT
+        st.warning("⚠️ No valid dates available for filtering. Please check the 'Date' column in your Excel file.")
+        date_filter = None  # Important: Set to None if no valid dates
+    else:
+        df.dropna(subset=['Date'], inplace=True)  # Remove rows with NaT dates ONLY if there are valid dates
         min_date = df['Date'].min()
         max_date = df['Date'].max()
         date_filter = st.sidebar.date_input("Select Date", value=min_date)  # Initialize with min_date
-    else:
-        st.warning("⚠️ No valid dates available for filtering.")
-        date_filter = None
+
 except (TypeError, ValueError):
-    st.warning("⚠️ Could not convert 'Date' column to datetime. Filter will not work correctly.")
+    st.warning("⚠️ Could not convert 'Date' column to datetime. Please check the 'Date' column in your Excel file for formatting issues.")  # More specific message
     date_filter = None
 
+# ... (rest of the filter code: item_filter, category_filter, etc.)
 
-item_filter = st.sidebar.text_input("Search Item Description")
-
-category_options = df["Category"].dropna().unique().tolist()
-uom_options = df["UOM"].dropna().unique().tolist()
-vendor_options = df["Vendor"].dropna().unique().tolist()
-
-category_filter = st.sidebar.multiselect("Select Category", category_options)
-quantity_filter = st.sidebar.slider("Select Quantity Range", min_value=quantity_min, max_value=quantity_max, value=(quantity_min, quantity_max))
-uom_filter = st.sidebar.multiselect("Select UOM", uom_options)
-price_filter = st.sidebar.slider("Select Price Range", min_value=price_min, max_value=price_max, value=(price_min, price_max))
-vendor_filter = st.sidebar.multiselect("Select Vendor", vendor_options)
-
-# Apply Filters
+# Apply Filters (Handle date_filter being None)
 filtered_df = df.copy()
 
-if date_filter:
+if date_filter is not None:  # Check if date_filter has a value
     filtered_df = filtered_df[filtered_df['Date'] == date_filter]  # Exact date match
 
-if item_filter:
-    filtered_df = filtered_df[filtered_df["Item Description"].str.contains(item_filter, case=False, na=False)]
-
-if category_filter:
-    filtered_df = filtered_df[filtered_df["Category"].isin(category_filter)]
-if quantity_filter:
-    filtered_df = filtered_df[(filtered_df["Quantity"] >= quantity_filter[0]) & (filtered_df["Quantity"] <= quantity_filter[1])]
-if uom_filter:
-    filtered_df = filtered_df[filtered_df["UOM"].isin(uom_filter)]
-if price_filter:
-    filtered_df = filtered_df[(filtered_df["Price"] >= price_filter[0]) & (filtered_df["Price"] <= price_filter[1])]
-if vendor_filter:
-    filtered_df = filtered_df[filtered_df["Vendor"].isin(vendor_filter)]
-
-
+# ... (rest of the filtering logic)
 
 # 📋 Data Table
-st.subheader("<h3><b>Inventory Management System</b></h3>") # Title Added and formatted
+st.markdown("<h3><b>Inventory Management System</b></h3>", unsafe_allow_html=True)  # Correct title display
 st.dataframe(filtered_df)
 
 st.write("🔄 **Use Filters to Update Data!**")
