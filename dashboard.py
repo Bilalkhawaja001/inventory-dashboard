@@ -7,7 +7,7 @@ import requests  # ✅ HTTP request karne ke liye
 from io import BytesIO  # ✅ Excel ko memory mein load karne ke liye
 
 # ✅ Correct File Paths
-logo_path = "C:/Bilal/LOGO.PNG"  # Ensure this file exists
+logo_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/LOGO.PNG"
 file_url = "https://raw.githubusercontent.com/Bilalkhawaja001/inventory-dashboard/main/Fixed_Inventory_Management.xlsx"
 sheet_name = "Inventory"
 
